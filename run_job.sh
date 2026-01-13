@@ -1,4 +1,14 @@
 #!/bin/bash
+
+curl -X PUT \
+  -H "Accept: application/vnd.github+json" \
+  -d "$(jq -n \
+    --arg msg "Job $JOB_ID started" \
+    --arg content "$(echo started | base64 -w0)" \
+    '{message:$msg, content:$content}')" \
+  "https://api.github.com/repos/mahibeulani-hash/ai-video-gpu-jobs/contents/heartbeats/${JOB_ID}.txt"
+
+
 set -e
 set -o pipefail
 
