@@ -93,4 +93,4 @@ python3 generate_gpu_job.py --job "$JOB_JSON"
 # SHUTDOWN
 ############################################
 echo "✅ Job finished successfully — shutting down"
-shutdown -h now
+#shutdown -h now  //for testing commented
