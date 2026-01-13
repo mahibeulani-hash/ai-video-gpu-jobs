@@ -24,10 +24,14 @@ cd /root/ai-video-gpu-jobs
 
 echo "📦 Installing Python dependencies"
 
+apt-get update
+apt-get install -y ffmpeg
+
 curl -fSL \
   https://raw.githubusercontent.com/mahibeulani-hash/ai-video-gpu-jobs/main/requirements.txt \
   -o requirements.txt
-
+  
+pip install --upgrade pip
 pip install --no-cache-dir -r requirements.txt
 
 
