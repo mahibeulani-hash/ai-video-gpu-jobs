@@ -30,11 +30,16 @@ FILES=(
 
 for f in "${FILES[@]}"; do
   echo "⬇️ Downloading $f"
-  curl -fSL \
-    "https://raw.githubusercontent.com/mahibeulani-hash/ai-video-gpu-jobs/main/$f" \
-    -o "$f"
+  if ! curl -fSL \
+      "https://raw.githubusercontent.com/mahibeulani-hash/ai-video-gpu-jobs/main/$f" \
+      -o "$f"; then
+    echo "❌ FAILED to download $f"
+    exit 1
+  fi
 done
 
+echo "📂 Files downloaded:"
+ls -l
 
 python3 generate_gpu_job.py --job job.json
 
