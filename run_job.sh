@@ -35,6 +35,9 @@ FILES=(
   pipeline.py
   generator.py
   generate_gpu_job.py
+  depth_generator.py
+  sd_generator.py
+  animator.py
 )
 
 for f in "${FILES[@]}"; do
