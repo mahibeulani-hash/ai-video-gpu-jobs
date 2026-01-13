@@ -19,6 +19,9 @@ curl -fSL "$JOB_URL" -o job.json
 cat job.json
 
 echo "🐍 Running GPU job"
+cd /root
+git clone https://github.com/mahibeulani-hash/ai-video-gpu-jobs.git
+cd ai-video-gpu-jobs
 python3 generate_gpu_job.py --job job.json
 
 echo "✅ Job finished — shutting down"
