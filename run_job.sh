@@ -1,63 +1,96 @@
 #!/bin/bash
+set -euxo pipefail
 
-curl -X PUT \
-  -H "Accept: application/vnd.github+json" \
-  -d "$(jq -n \
-    --arg msg "Job $JOB_ID started" \
-    --arg content "$(echo started | base64 -w0)" \
-    '{message:$msg, content:$content}')" \
-  "https://api.github.com/repos/mahibeulani-hash/ai-video-gpu-jobs/contents/heartbeats/${JOB_ID}.txt"
+############################################
+# BASIC ENV
+############################################
+: "${JOB_ID:?JOB_ID not set}"
+cd /root
 
+echo "🚀 Starting job: $JOB_ID"
 
-set -e
-set -o pipefail
+############################################
+# FETCH JOB JSON
+############################################
+echo "📥 Fetching job.json"
 
+JOB_JSON="/root/job.json"
 JOB_URL="https://raw.githubusercontent.com/mahibeulani-hash/ai-video-gpu-jobs/main/jobs/${JOB_ID}.json"
 
-echo "📥 Fetching job.json"
-curl -fSL "$JOB_URL" -o job.json
-cat job.json
+curl -4 -fSL \
+  --connect-timeout 10 \
+  --max-time 30 \
+  "$JOB_URL" \
+  -o "$JOB_JSON"
 
-echo "🐍 Running GPU job"
-mkdir -p /root/ai-video-gpu-jobs
+cat "$JOB_JSON"
+
+############################################
+# WAIT FOR APT LOCK (NO UPDATE)
+############################################
+echo "⏳ Waiting for dpkg lock to be released..."
+
+while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
+  sleep 5
+done
+
+############################################
+# SYSTEM DEPENDENCY (FFMPEG ONLY)
+############################################
+if ! command -v ffmpeg >/dev/null 2>&1; then
+  echo "📦 Installing ffmpeg"
+  apt-get install -y ffmpeg
+else
+  echo "✅ ffmpeg already installed"
+fi
+
+############################################
+# DOWNLOAD SOURCE ZIP (SINGLE REQUEST)
+############################################
+echo "⬇️ Downloading source archive"
+
+ZIP_NAME="ai-video-gpu-jobs-main.zip"
+ZIP_URL="https://github.com/mahibeulani-hash/ai-video-gpu-jobs/archive/refs/heads/main.zip"
+
+curl -4 -L \
+  --connect-timeout 10 \
+  --max-time 120 \
+  "$ZIP_URL" \
+  -o "$ZIP_NAME"
+
+############################################
+# EXTRACT SOURCE
+############################################
+echo "📦 Extracting source"
+
+if ! command -v unzip >/dev/null 2>&1; then
+  apt-get install -y unzip
+fi
+
+rm -rf /root/ai-video-gpu-jobs
+unzip -o "$ZIP_NAME"
+mv ai-video-gpu-jobs-main ai-video-gpu-jobs
+
 cd /root/ai-video-gpu-jobs
+ls -l
 
-echo "📦 Installing Python dependencies"
+############################################
+# PYTHON DEPENDENCIES
+############################################
+echo "🐍 Installing Python dependencies"
 
-apt-get update
-apt-get install -y ffmpeg
-
-curl -fSL \
-  https://raw.githubusercontent.com/mahibeulani-hash/ai-video-gpu-jobs/main/requirements.txt \
-  -o requirements.txt
-  
 pip install --upgrade pip
 pip install --no-cache-dir -r requirements.txt
 
+############################################
+# RUN JOB
+############################################
+echo "🎬 Running GPU job"
 
-FILES=(
-  pipeline.py
-  generator.py
-  generate_gpu_job.py
-  depth_generator.py
-  sd_generator.py
-  animator.py
-)
+python3 generate_gpu_job.py --job "$JOB_JSON"
 
-for f in "${FILES[@]}"; do
-  echo "⬇️ Downloading $f"
-  if ! curl -fSL \
-      "https://raw.githubusercontent.com/mahibeulani-hash/ai-video-gpu-jobs/main/$f" \
-      -o "$f"; then
-    echo "❌ FAILED to download $f"
-    exit 1
-  fi
-done
-
-echo "📂 Files downloaded:"
-ls -l
-
-python3 generate_gpu_job.py --job job.json
-
-echo "✅ Job finished — shutting down"
+############################################
+# SHUTDOWN
+############################################
+echo "✅ Job finished successfully — shutting down"
 shutdown -h now
