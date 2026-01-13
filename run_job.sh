@@ -22,6 +22,15 @@ echo "🐍 Running GPU job"
 mkdir -p /root/ai-video-gpu-jobs
 cd /root/ai-video-gpu-jobs
 
+echo "📦 Installing Python dependencies"
+
+curl -fSL \
+  https://raw.githubusercontent.com/mahibeulani-hash/ai-video-gpu-jobs/main/requirements.txt \
+  -o requirements.txt
+
+pip install --no-cache-dir -r requirements.txt
+
+
 FILES=(
   pipeline.py
   generator.py
