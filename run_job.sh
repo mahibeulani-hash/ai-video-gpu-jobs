@@ -22,9 +22,19 @@ echo "🐍 Running GPU job"
 mkdir -p /root/ai-video-gpu-jobs
 cd /root/ai-video-gpu-jobs
 
-curl -fSL \
-  https://raw.githubusercontent.com/mahibeulani-hash/ai-video-gpu-jobs/main/generate_gpu_job.py \
-  -o generate_gpu_job.py
+FILES=(
+  pipeline.py
+  generator.py
+  generate_gpu_job.py
+)
+
+for f in "${FILES[@]}"; do
+  echo "⬇️ Downloading $f"
+  curl -fSL \
+    "https://raw.githubusercontent.com/mahibeulani-hash/ai-video-gpu-jobs/main/$f" \
+    -o "$f"
+done
+
 
 python3 generate_gpu_job.py --job job.json
 
