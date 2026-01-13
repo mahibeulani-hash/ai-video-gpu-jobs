@@ -3,8 +3,8 @@ from typing import List
 from moviepy.editor import concatenate_videoclips, AudioFileClip
 
 # imports you already use
-from sd import SDGenerator
-from depth import DepthGenerator
+from sd_generator import SDGenerator
+from depth_generator import DepthGenerator
 from animator import ImageAnimator
 
 
