@@ -6,34 +6,39 @@ from diffusers import StableDiffusionPipeline
 
 
 class SDGenerator:
-    def __init__(
+  def __init__(
         self,
         model_id: str = "runwayml/stable-diffusion-v1-5",
         device: Optional[str] = None,
     ):
-        try:
-            self.pipe.enable_xformers_memory_efficient_attention()
-            print("⚡ xFormers enabled")
-        except Exception as e:
-            print("xFormers not available:", e)
-
-
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         torch.set_grad_enabled(False)
 
+        # -----------------------------
+        # Load pipeline FIRST
+        # -----------------------------
         self.pipe = StableDiffusionPipeline.from_pretrained(
             model_id,
-            torch_dtype=torch.float32
+            torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
         ).to(self.device)
 
+        # -----------------------------
+        # GPU optimizations
+        # -----------------------------
         if self.device == "cuda":
+            try:
+                self.pipe.enable_xformers_memory_efficient_attention()
+                print("⚡ xFormers enabled")
+            except Exception as e:
+                print("⚠️ xFormers not available:", e)
+
+            # Optional – safe
             self.pipe.enable_attention_slicing()
             self.pipe.enable_vae_slicing()
-            self.pipe.enable_sequential_cpu_offload()
+
+            # ❌ DO NOT enable CPU offload on RTX GPUs
 
         self.pipe.set_progress_bar_config(disable=True)
-
-        print(f"✅ SD loaded on {self.device}")
 
     # -----------------------------
     # SINGLE IMAGE
