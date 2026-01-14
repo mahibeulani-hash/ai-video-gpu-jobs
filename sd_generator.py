@@ -6,7 +6,7 @@ from diffusers import StableDiffusionPipeline
 
 
 class SDGenerator:
-  def __init__(
+    def __init__(
         self,
         model_id: str = "runwayml/stable-diffusion-v1-5",
         device: Optional[str] = None,
