@@ -11,8 +11,8 @@ def run(job_id: str):
       2) job.json with "script" + "num_scenes"
     """
 
-    job_file = f"/root/ai-video-gpu-jobs/job.json"
-    state_file = f"/root/ai-video-gpu-jobs/{job_id}.state.json"
+    job_file = f"/root/job.json"
+    state_file = f"/root/ai-video-gpu-jobs/jobs/{job_id}.state.json"
 
     if not os.path.exists(job_file):
         raise FileNotFoundError(f"Job file not found: {job_file}")
