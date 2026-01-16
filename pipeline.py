@@ -9,20 +9,19 @@ from diffusers import (
 
 class AutoVideoPipeline:
     """
-    REAL video generation using:
-    Text -> Image (SD)
-    Image -> Video (SVD)
+    Text -> Image (Stable Diffusion)
+    Image -> Video (Stable Video Diffusion)
     """
 
     def __init__(self):
-        print("🚀 Loading text-to-image model...", flush=True)
+        print("🚀 Loading Stable Diffusion (text → image)...", flush=True)
 
         self.sd = StableDiffusionPipeline.from_pretrained(
             "runwayml/stable-diffusion-v1-5",
             torch_dtype=torch.float16,
         ).to("cuda")
 
-        print("🚀 Loading image-to-video model...", flush=True)
+        print("🚀 Loading Stable Video Diffusion (image → video)...", flush=True)
 
         self.svd = StableVideoDiffusionPipeline.from_pretrained(
             "stabilityai/stable-video-diffusion-img2vid",
@@ -30,12 +29,13 @@ class AutoVideoPipeline:
             variant="fp16",
         ).to("cuda")
 
-        # Optional xformers
+        # xFormers is OPTIONAL
         for pipe in (self.sd, self.svd):
             try:
                 pipe.enable_xformers_memory_efficient_attention()
+                print("✅ xFormers enabled", flush=True)
             except Exception:
-                pass
+                print("⚠️ xFormers not available, continuing", flush=True)
 
         print("✅ Models loaded", flush=True)
 
@@ -47,9 +47,9 @@ class AutoVideoPipeline:
         save_to: str,
         **kwargs
     ):
-        # -----------------------------------
-        # 1. TEXT -> IMAGE
-        # -----------------------------------
+        # -----------------------------
+        # TEXT → IMAGE
+        # -----------------------------
         print("🖼️ Generating base image...", flush=True)
 
         with torch.autocast("cuda"):
@@ -61,15 +61,15 @@ class AutoVideoPipeline:
                 width=768,
             ).images[0]
 
-        # Convert PIL -> torch tensor
-        image = torch.from_numpy(np.array(image)).float() / 255.0
-        image = image.permute(2, 0, 1).unsqueeze(0).to("cuda")
+        # PIL → torch tensor [1,3,H,W]
+        image = np.array(image).astype("float32") / 255.0
+        image = torch.from_numpy(image).permute(2, 0, 1).unsqueeze(0).to("cuda")
 
-        # -----------------------------------
-        # 2. IMAGE -> VIDEO
-        # -----------------------------------
+        # -----------------------------
+        # IMAGE → VIDEO
+        # -----------------------------
         num_frames = int(duration_per_scene * frame_rate)
-        print(f"🎥 Generating {num_frames} video frames...", flush=True)
+        print(f"🎥 Generating {num_frames} frames...", flush=True)
 
         with torch.autocast("cuda"):
             result = self.svd(
