@@ -1,31 +1,43 @@
 import torch
 import imageio
 import numpy as np
-from diffusers import StableVideoDiffusionPipeline
+from diffusers import (
+    StableDiffusionPipeline,
+    StableVideoDiffusionPipeline,
+)
 
 
 class AutoVideoPipeline:
     """
-    REAL video generation pipeline using Stable Video Diffusion.
+    REAL video generation using:
+    Text -> Image (SD)
+    Image -> Video (SVD)
     """
 
     def __init__(self):
-        print("🚀 Loading Stable Video Diffusion model...", flush=True)
+        print("🚀 Loading text-to-image model...", flush=True)
 
-        self.pipe = StableVideoDiffusionPipeline.from_pretrained(
-            "stabilityai/stable-video-diffusion-img2vid",
+        self.sd = StableDiffusionPipeline.from_pretrained(
+            "runwayml/stable-diffusion-v1-5",
             torch_dtype=torch.float16,
-            variant="fp16"
         ).to("cuda")
 
-        # OPTIONAL xformers
-        try:
-            self.pipe.enable_xformers_memory_efficient_attention()
-            print("✅ xFormers enabled", flush=True)
-        except Exception as e:
-            print("⚠️ xFormers not available, continuing without it:", e, flush=True)
+        print("🚀 Loading image-to-video model...", flush=True)
 
-        print("✅ Video model loaded", flush=True)
+        self.svd = StableVideoDiffusionPipeline.from_pretrained(
+            "stabilityai/stable-video-diffusion-img2vid",
+            torch_dtype=torch.float16,
+            variant="fp16",
+        ).to("cuda")
+
+        # Optional xformers
+        for pipe in (self.sd, self.svd):
+            try:
+                pipe.enable_xformers_memory_efficient_attention()
+            except Exception:
+                pass
+
+        print("✅ Models loaded", flush=True)
 
     def generate_video(
         self,
@@ -35,23 +47,39 @@ class AutoVideoPipeline:
         save_to: str,
         **kwargs
     ):
-        num_frames = duration_per_scene * frame_rate
-
-        print(f"🎥 Generating {num_frames} frames", flush=True)
+        # -----------------------------------
+        # 1. TEXT -> IMAGE
+        # -----------------------------------
+        print("🖼️ Generating base image...", flush=True)
 
         with torch.autocast("cuda"):
-            result = self.pipe(
+            image = self.sd(
                 prompt=script,
-                num_frames=num_frames,
-                height=432,
-                width=768,
                 num_inference_steps=30,
                 guidance_scale=7.5,
-                decode_chunk_size=8
+                height=432,
+                width=768,
+            ).images[0]
+
+        # Convert PIL -> torch tensor
+        image = torch.from_numpy(np.array(image)).float() / 255.0
+        image = image.permute(2, 0, 1).unsqueeze(0).to("cuda")
+
+        # -----------------------------------
+        # 2. IMAGE -> VIDEO
+        # -----------------------------------
+        num_frames = int(duration_per_scene * frame_rate)
+        print(f"🎥 Generating {num_frames} video frames...", flush=True)
+
+        with torch.autocast("cuda"):
+            result = self.svd(
+                image,
+                num_frames=num_frames,
+                decode_chunk_size=8,
             )
 
         frames = result.frames[0]
-        frames = [(frame * 255).astype(np.uint8) for frame in frames]
+        frames = [(f * 255).astype(np.uint8) for f in frames]
 
         imageio.mimsave(save_to, frames, fps=frame_rate)
 
