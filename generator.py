@@ -1,19 +1,27 @@
 from pipeline import AutoVideoPipeline
+import os
+
+
+_pipeline = None
 
 
 def generate_clip(scene, index):
     """
     Adapter used by generate_gpu_job.py
+    Produces REAL video (not animated image).
     """
-    pipeline = AutoVideoPipeline()
 
-    pipeline.generate_video(
+    global _pipeline
+    if _pipeline is None:
+        _pipeline = AutoVideoPipeline()
+
+    os.makedirs("outputs", exist_ok=True)
+
+    output_path = scene.get("output_path", f"outputs/scene_{index}.mp4")
+
+    _pipeline.generate_video(
         script=scene["script"],
-        num_scenes=scene.get("num_scenes", 1),
         duration_per_scene=scene.get("duration_per_scene", 3),
         frame_rate=scene.get("frame_rate", 12),
-        add_music=scene.get("add_music", False),
-        music_volume=scene.get("music_volume", 0.8),
-        audio_path=scene.get("audio_path"),
-        save_to=f"outputs/scene_{index}.mp4",
+        save_to=output_path,
     )

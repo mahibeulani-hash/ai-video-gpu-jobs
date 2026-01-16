@@ -1,14 +1,30 @@
+# -----------------------
 # Core
+# -----------------------
 numpy
 Pillow
 
+# -----------------------
 # Video processing
+# -----------------------
 moviepy==1.0.3
 imageio
 imageio-ffmpeg
 
+# -----------------------
 # Computer vision
+# -----------------------
 opencv-python
 
+# -----------------------
 # Utilities
+# -----------------------
 tqdm
+
+# -----------------------
+# REAL VIDEO DIFFUSION (NEW)
+# -----------------------
+diffusers>=0.25.0
+transformers>=4.36.0
+accelerate>=0.25.0
+xformers; platform_system == "Linux"
