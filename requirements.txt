@@ -22,9 +22,9 @@ opencv-python
 tqdm
 
 # -----------------------
-# REAL VIDEO DIFFUSION (NEW)
+# REAL TEXT-TO-VIDEO (ADD ONLY)
 # -----------------------
 diffusers>=0.25.0
 transformers>=4.36.0
 accelerate>=0.25.0
-xformers; platform_system == "Linux"
+xformers; platform_system=="Linux"
