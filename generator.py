@@ -11,7 +11,7 @@ def generate_clip(scene, index):
 
     os.makedirs("outputs", exist_ok=True)
 
-    output_path = scene.get("output_path", f"outputs/scene_{index}.mp4")
+    output_path = f"outputs/scene_{index}.mp4"
 
     _pipeline.generate_video(
         script=scene["script"],
