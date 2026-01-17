@@ -2,7 +2,7 @@
   "job_id": "job-03a1eb9136ec48d58f531a2d1152c801",
   "script": "A crow flying through a dense forest at sunrise with wings flapping continuously, camera tracking shot following the crow, cinematic lighting, shallow depth of field, smooth natural motion",
   "num_scenes": 1,
-  "duration_per_scene": 3,
+  "duration_per_scene": 4,
   "frame_rate": 12,
   "add_music": true,
   "music_volume": 0.8
