@@ -72,10 +72,11 @@ class AutoVideoPipeline:
                     + ", cinematic motion, dynamic action, "
                       "camera tracking shot, depth of field"
                 ),
-                num_inference_steps=35,
-                guidance_scale=7.5,
-                height=576,
+                num_inference_steps=45,
+                guidance_scale=8.5,
+                height=768,
                 width=1024,
+
             ).images[0]
 
         # --------------------------------------------------
