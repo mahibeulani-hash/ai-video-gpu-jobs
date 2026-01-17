@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import imageio
 from diffusers import StableDiffusionPipeline, StableVideoDiffusionPipeline
-
+from PIL import Image
 
 class AutoVideoPipeline:
     """
@@ -53,8 +53,19 @@ class AutoVideoPipeline:
                 width=1024,
             ).images[0]
 
-        image = np.array(image).astype("float32") / 255.0
+        
+
+        # Convert PIL → numpy
+        image_np = np.array(image).astype("float32") / 255.0
+
+        # Resize to 224x224 for SVD (MANDATORY)
+        image_resized = Image.fromarray((image_np * 255).astype("uint8")).resize(
+            (224, 224), Image.BICUBIC
+        )
+
+        image = np.array(image_resized).astype("float32") / 255.0
         image = torch.from_numpy(image).permute(2, 0, 1).unsqueeze(0).to("cuda")
+
 
         # ----------------------------------
         # IMAGE → VIDEO (real temporal diffusion)
