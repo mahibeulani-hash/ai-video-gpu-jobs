@@ -2,6 +2,8 @@ FROM ghcr.io/pytorch/pytorch-nightly:2.4.0.dev20240513-cuda12.4-cudnn8-devel
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
+ENV PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
 WORKDIR /app
 
 # System deps

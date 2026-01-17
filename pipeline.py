@@ -110,8 +110,9 @@ class AutoVideoPipeline:
                 decode_chunk_size=4,  # ↓ VRAM safe
             )
 
-        frames = result.frames[0]
-        frames = [(f * 255).astype(np.uint8) for f in frames]
+        frames = result.frames[0]  # already PIL Images
+        frames = [np.array(f) for f in frames]
+
 
         # --------------------------------------------------
         # 5. SAVE VIDEO
