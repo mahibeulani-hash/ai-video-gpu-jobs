@@ -3,7 +3,7 @@
   "script": "A crow flying through a dense forest at sunrise with wings flapping continuously, camera tracking shot following the crow, cinematic lighting, shallow depth of field, smooth natural motion",
   "num_scenes": 1,
   "duration_per_scene": 4,
-  "frame_rate": 12,
+  "frame_rate": 8,
   "add_music": true,
   "music_volume": 0.8
 }
